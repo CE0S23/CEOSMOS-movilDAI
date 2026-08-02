@@ -1,0 +1,35 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+pubspec.lock
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+*.ipr
+*.iws
+.gradle/
+*.log
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.name
+
+# Entorno / secretos
+.env
+.env.*
+
+# Claves y certificados
+*.jks
+*.keystore
+
+# Node.js (para la app TV)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS / Windows
+.DS_Store
+Thumbs.db

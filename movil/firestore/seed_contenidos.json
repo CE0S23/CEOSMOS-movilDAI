@@ -1,0 +1,34 @@
+{
+  "relajar_naturaleza": {
+    "modo": "relajar",
+    "titulo": "Bosque en calma",
+    "tipoContenido": "naturaleza",
+    "fondoUrl": "",
+    "audioUrl": "",
+    "colorAcento": "#2E7D5B"
+  },
+  "flow_lofi": {
+    "modo": "flow_profundo",
+    "titulo": "Lofi enfocado",
+    "tipoContenido": "lofi",
+    "fondoUrl": "",
+    "audioUrl": "",
+    "colorAcento": "#3B4A8C"
+  },
+  "motivar_frases": {
+    "modo": "motivar",
+    "titulo": "Frases de impulso",
+    "tipoContenido": "frases",
+    "fondoUrl": "",
+    "audioUrl": "",
+    "colorAcento": "#C9622E"
+  },
+  "relajar_musica": {
+    "modo": "relajar",
+    "titulo": "Piano ambiental",
+    "tipoContenido": "musica",
+    "fondoUrl": "",
+    "audioUrl": "",
+    "colorAcento": "#6B4E9E"
+  }
+}
