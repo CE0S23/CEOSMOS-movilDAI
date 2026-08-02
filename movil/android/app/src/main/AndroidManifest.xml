@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permisos BLE para Android 12+ (API 31+). El proyecto compila con API >= 31,
+         por lo que usamos los permisos de runtime modernos en lugar de
+         ACCESS_FINE_LOCATION. neverForLocation evita el requisito de ubicación. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+
     <application
         android:label="ceosmos_movil"
         android:name="${applicationName}"
