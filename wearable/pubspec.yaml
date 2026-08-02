@@ -1,4 +1,4 @@
-name: ceosmos_movil
+name: ceosmos_wearable
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -34,12 +34,18 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  cloud_firestore: ^6.7.1
-  firebase_core: ^4.12.1
-  flutter_blue_plus: ^2.3.11
+
+  # ble_peripheral: plugin para actuar como BLE peripheral (GATT server) en Android.
+  # Se eligió sobre:
+  #  - flutter_ble_peripheral (steenbakker): solo publica/advertise datos; NO incluye
+  #    un GATT server completo en su versión liberada (la funcionalidad GATT está en un
+  #    branch experimental). No permite exponer características con NOTIFY de forma directa.
+  #  - bluetooth_low_energy: orientado a central (escaneo/conexión), no a rol peripheral.
+  # ble_peripheral incluye un GATT server integrado y permite definir servicios y
+  # características con propiedades de NOTIFY para Android, con soporte activo
+  # (verificado, versión estable 2.4.0).
+  ble_peripheral: ^2.4.0
   provider: ^6.1.5+1
-  shared_preferences: ^2.5.5
-  permission_handler: 12.0.2
 
 dev_dependencies:
   flutter_test:

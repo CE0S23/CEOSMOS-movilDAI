@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -26,7 +27,24 @@ class WearableProvider extends ChangeNotifier {
       _ultimoDato != null &&
       _ultimoDato!.frecuenciaCardiaca > BleConstants.umbralFrecuenciaCritica;
 
+  Future<bool> _solicitarPermisosBle() async {
+    var permisos = <Permission>[
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+    ];
+
+    final statuses = await permisos.request();
+    return statuses.values.every((status) => status.isGranted);
+  }
+
   Future<void> iniciarEscaneo() async {
+    final permisosOk = await _solicitarPermisosBle();
+    if (!permisosOk) {
+      _estadoConexion = 'error';
+      notifyListeners();
+      return;
+    }
+
     _estadoConexion = 'buscando';
     notifyListeners();
 
