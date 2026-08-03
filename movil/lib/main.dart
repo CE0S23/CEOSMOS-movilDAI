@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/historial_provider.dart';
 import 'providers/sesion_provider.dart';
 import 'providers/wearable_provider.dart';
 import 'screens/seleccion_modo_screen.dart';
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SesionProvider()),
         ChangeNotifierProvider(create: (_) => WearableProvider()),
+        ChangeNotifierProvider(create: (_) => HistorialProvider()),
       ],
       child: MaterialApp(
         title: 'CEOSMOS',

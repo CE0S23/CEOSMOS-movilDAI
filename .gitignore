@@ -19,10 +19,30 @@ build/
 # Entorno / secretos
 .env
 .env.*
+.env.example
+secrets/
+credentials.json
 
-# Claves y certificados
+# Firebase / credenciales web y móvil (NUNCA subir el real)
+**/firebase-config.js
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Claves y certificados (firmado de builds)
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
+keystore.properties
+key.properties
+signing.key
+
+# Archivos generados Flutter/Android
+local.properties
+local.properties.lock
+*.lock
+*.log.bak
 
 # Node.js (para la app TV)
 node_modules/

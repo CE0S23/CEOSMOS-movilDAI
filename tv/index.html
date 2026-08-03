@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src 'self' https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://www.gstatic.com; media-src 'self' https:; img-src 'self' data: https:; script-src 'self' https://www.gstatic.com" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <title>CEOSMOS TV</title>
+</head>
+<body>
+  <div id="fondo-media" aria-hidden="true"></div>
+
+  <div id="app" class="safe-zone">
+    <header class="app-header">
+      <div class="app-header__brand">
+        <h1 class="app-header__title">CEOSMOS</h1>
+        <p class="app-header__subtitle">Concentración · Relajación</p>
+      </div>
+      <div class="app-header__reloj">
+        <span id="reloj-hora" class="dato-principal">--:--</span>
+        <span id="reloj-fecha" class="etiqueta-secundaria">-------</span>
+      </div>
+    </header>
+
+    <main class="grid-contenidos"></main>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "CEOSMOS TV",
+  "short_name": "CEOSMOS",
+  "description": "Smart TV CEOSMOS: concentración y relajación.",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "start_url": ".",
+  "scope": ".",
+  "background_color": "#10152b",
+  "theme_color": "#10152b",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../ble/ble_constants.dart';
 import '../ble/ble_service.dart';
@@ -14,6 +14,8 @@ class WearableProvider extends ChangeNotifier {
   BluetoothDevice? _dispositivo;
   WearableDataModel? _ultimoDato;
   String _estadoConexion = 'inactivo';
+  bool _reconectando = false;
+  bool _cierreManual = false;
 
   StreamSubscription<BluetoothDevice?>? _scanSub;
   StreamSubscription<WearableDataModel>? _dataSub;
@@ -22,31 +24,34 @@ class WearableProvider extends ChangeNotifier {
   BluetoothDevice? get dispositivo => _dispositivo;
   WearableDataModel? get ultimoDato => _ultimoDato;
   String get estadoConexion => _estadoConexion;
+  bool get reconectando => _reconectando;
+  bool get conectado => _estadoConexion == 'conectado';
 
   bool get alertaCritica =>
       _ultimoDato != null &&
       _ultimoDato!.frecuenciaCardiaca > BleConstants.umbralFrecuenciaCritica;
 
   Future<bool> _solicitarPermisosBle() async {
-    var permisos = <Permission>[
+    final statuses = await [
       Permission.bluetoothScan,
       Permission.bluetoothConnect,
-    ];
-
-    final statuses = await permisos.request();
+    ].request();
     return statuses.values.every((status) => status.isGranted);
   }
 
   Future<void> iniciarEscaneo() async {
     final permisosOk = await _solicitarPermisosBle();
     if (!permisosOk) {
-      _estadoConexion = 'error';
-      notifyListeners();
+      _cambiarEstado('error');
       return;
     }
 
-    _estadoConexion = 'buscando';
-    notifyListeners();
+    _reconectando = false;
+    _reintentarEscaneo();
+  }
+
+  Future<void> _reintentarEscaneo() async {
+    _cambiarEstado('buscando');
 
     try {
       _scanSub?.cancel();
@@ -54,31 +59,32 @@ class WearableProvider extends ChangeNotifier {
         (dispositivo) async {
           if (dispositivo != null) {
             _dispositivo = dispositivo;
-            _estadoConexion = 'conectado';
-            notifyListeners();
             await _conectarYEscuchar(dispositivo);
           } else {
-            _estadoConexion = 'error';
-            notifyListeners();
+            _cambiarEstado('error');
           }
         },
         onError: (Object e) {
-          // ignore: avoid_print
           print('Error en escaneo: $e');
-          _estadoConexion = 'error';
-          notifyListeners();
+          _cambiarEstado('error');
         },
       );
     } catch (e) {
       // ignore: avoid_print
       print('Error al iniciar escaneo: $e');
-      _estadoConexion = 'error';
-      notifyListeners();
+      _cambiarEstado('error');
     }
   }
 
   Future<void> _conectarYEscuchar(BluetoothDevice device) async {
-    await _bleService.conectar(device);
+    try {
+      await _bleService.conectar(device);
+    } catch (e) {
+      // avoid_print
+      print('Error al conectar: $e');
+      _cambiarEstado('error');
+      return;
+    }
 
     _dataSub?.cancel();
     _dataSub = _bleService.streamDatosWearable(device).listen(
@@ -87,40 +93,88 @@ class WearableProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (Object e) {
-        // ignore: avoid_print
+        // avoid_print
         print('Error en datos del wearable: $e');
       },
     );
 
     _connectionSub?.cancel();
     _connectionSub =
-        _bleService.streamEstadoConexion(device).listen((state) {
-      switch (state) {
-        case BluetoothConnectionState.connected:
-          _estadoConexion = 'conectado';
-          break;
-        case BluetoothConnectionState.disconnected:
-          _estadoConexion = 'desconectado';
-          break;
-      }
-      notifyListeners();
-    });
+        _bleService.streamEstadoConexion(device).listen(
+      (state) {
+        if (state == BluetoothConnectionState.connected) {
+          _cambiarEstado('conectado');
+          _reconectando = false;
+        } else if (state == BluetoothConnectionState.disconnected) {
+          if (_cierreManual) {
+            _reiniciar();
+          } else {
+            _manejarDesconexion();
+          }
+        }
+      },
+      onError: (Object e) {
+        // avoid_print
+        print('Error en estado de conexión: $e');
+        _manejarDesconexion();
+      },
+    );
+  }
+
+  /// Desconexión no deseada: limpia datos, marca estado y reintenta una vez
+  /// con espera para no crashear la UI.
+  Future<void> _manejarDesconexion() async {
+    _ultimoDato = null;
+    _cambiarEstado('desconectado');
+
+    if (_reconectando || _dispositivo == null) {
+      return;
+    }
+
+    _reconectando = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(seconds: 3));
+    _reconectando = false;
+
+    final device = _dispositivo;
+    if (device == null || _cierreManual) {
+      return;
+    }
+
+    _cambiarEstado('buscando');
+    await _conectarYEscuchar(device);
   }
 
   Future<void> desconectar() async {
+    _cierreManual = true;
     await _scanSub?.cancel();
     await _dataSub?.cancel();
     await _connectionSub?.cancel();
 
     final dispositivo = _dispositivo;
     if (dispositivo != null) {
-      await _bleService.desconectar(dispositivo);
+      try {
+        await _bleService.desconectar(dispositivo);
+      } catch (e) {
+        // avoid_print
+        print('Error al desconectar: $e');
+      }
     }
+    _reiniciar();
+    _cierreManual = false;
+  }
 
+  void _cambiarEstado(String nuevo) {
+    _estadoConexion = nuevo;
+    notifyListeners();
+  }
+
+  void _reiniciar() {
     _dispositivo = null;
     _ultimoDato = null;
-    _estadoConexion = 'inactivo';
-    notifyListeners();
+    _reconectando = false;
+    _cambiarEstado('inactivo');
   }
 
   @override
