@@ -26,6 +26,45 @@
 
     <main class="grid-contenidos"></main>
   </div>
+
+  <div id="vinculacion" class="vinculacion" hidden>
+    <form id="vinculacion-form" class="vinculacion__form">
+      <h1 class="vinculacion__titulo">Vincular Smart TV</h1>
+      <p class="vinculacion__texto">
+        Ingresa el email y el código de vinculación que muestra la app CEOSMOS en tu teléfono.
+      </p>
+
+      <label class="vinculacion__campo">
+        <span class="vinculacion__etiqueta">Email</span>
+        <input
+          id="vinculacion-email"
+          class="vinculacion__entrada"
+          type="email"
+          autocomplete="off"
+          placeholder="usuario@correo.com"
+        />
+      </label>
+
+      <label class="vinculacion__campo">
+        <span class="vinculacion__etiqueta">Código de 6 dígitos</span>
+        <input
+          id="vinculacion-codigo"
+          class="vinculacion__entrada vinculacion__entrada--codigo"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          autocomplete="off"
+          placeholder="000000"
+        />
+      </label>
+
+      <p id="vinculacion-error" class="vinculacion__error" hidden></p>
+
+      <button type="submit" class="vinculacion__boton">Vincular</button>
+    </form>
+  </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

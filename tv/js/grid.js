@@ -26,7 +26,12 @@ export function renderizarGrid(contenidos, contenedorEl) {
     const indicador = document.createElement('div');
     indicador.className = 'tarjeta-contenido__indicador';
     if (contenido.colorAcento) {
-      indicador.style.backgroundColor = contenido.colorAcento;
+      if (contenido.colorSecundario) {
+        indicador.style.background =
+          `linear-gradient(135deg, ${contenido.colorAcento} 0%, ${contenido.colorSecundario} 100%)`;
+      } else {
+        indicador.style.backgroundColor = contenido.colorAcento;
+      }
     }
 
     const titulo = document.createElement('div');
@@ -180,12 +185,17 @@ function crearFondoVisual(contenido) {
   return contenedor;
 }
 
-/** Fallback visual: color sólido del contenido o gradiente por defecto. */
+/** Fallback visual: gradiente animado del contenido o gradiente por defecto. */
 const crearFallbackVisual = (contenido) => {
   const fallback = document.createElement('div');
   fallback.className = 'fondo-media--fallback';
   if (contenido.colorAcento) {
-    fallback.style.background = contenido.colorAcento;
+    if (contenido.colorSecundario) {
+      fallback.style.background =
+        `linear-gradient(135deg, ${contenido.colorAcento} 0%, ${contenido.colorSecundario} 100%)`;
+    } else {
+      fallback.style.background = contenido.colorAcento;
+    }
   } else {
     fallback.style.background = GRADIENTE_DEFAULT;
   }

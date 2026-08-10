@@ -20,7 +20,7 @@ class BleService {
     try {
       await FlutterBluePlus.startScan(
         withServices: [Guid(BleConstants.serviceUuid)],
-        timeout: const Duration(seconds: 10),
+        timeout: const Duration(seconds: 5),
       );
 
       await for (final results in FlutterBluePlus.scanResults) {

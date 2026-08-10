@@ -8,6 +8,8 @@ class ContenidoModel {
   final String fondoUrl;
   final String audioUrl;
   final String colorAcento;
+  final String colorSecundario;
+  final String iconoNombre;
 
   ContenidoModel({
     required this.id,
@@ -17,6 +19,8 @@ class ContenidoModel {
     required this.fondoUrl,
     required this.audioUrl,
     required this.colorAcento,
+    this.colorSecundario = '',
+    this.iconoNombre = '',
   });
 
   factory ContenidoModel.fromFirestore(DocumentSnapshot doc) {
@@ -29,6 +33,8 @@ class ContenidoModel {
       fondoUrl: data['fondoUrl'] as String? ?? '',
       audioUrl: data['audioUrl'] as String? ?? '',
       colorAcento: data['colorAcento'] as String? ?? '',
+      colorSecundario: data['colorSecundario'] as String? ?? '',
+      iconoNombre: data['iconoNombre'] as String? ?? '',
     );
   }
 }

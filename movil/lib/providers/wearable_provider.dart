@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -6,10 +7,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../ble/ble_constants.dart';
 import '../ble/ble_service.dart';
+import '../ble/tcp_fallback_client.dart';
 import '../models/wearable_data_model.dart';
 
 class WearableProvider extends ChangeNotifier {
   final BleService _bleService = BleService();
+  final TcpFallbackClient _tcpFallbackClient = TcpFallbackClient();
 
   BluetoothDevice? _dispositivo;
   WearableDataModel? _ultimoDato;
@@ -20,12 +23,16 @@ class WearableProvider extends ChangeNotifier {
   StreamSubscription<BluetoothDevice?>? _scanSub;
   StreamSubscription<WearableDataModel>? _dataSub;
   StreamSubscription<BluetoothConnectionState>? _connectionSub;
+  StreamSubscription<WearableDataModel>? _tcpDataSub;
+  Socket? _tcpSocket;
 
   BluetoothDevice? get dispositivo => _dispositivo;
   WearableDataModel? get ultimoDato => _ultimoDato;
   String get estadoConexion => _estadoConexion;
   bool get reconectando => _reconectando;
-  bool get conectado => _estadoConexion == 'conectado';
+  bool get conectado =>
+      _estadoConexion == 'conectado' ||
+      _estadoConexion == 'conectado_respaldo';
 
   bool get alertaCritica =>
       _ultimoDato != null &&
@@ -61,17 +68,56 @@ class WearableProvider extends ChangeNotifier {
             _dispositivo = dispositivo;
             await _conectarYEscuchar(dispositivo);
           } else {
-            _cambiarEstado('error');
+            await _manejarFalloEscaneo();
           }
         },
         onError: (Object e) {
+          // ignore: avoid_print
           print('Error en escaneo: $e');
-          _cambiarEstado('error');
+          _manejarFalloEscaneo();
         },
       );
     } catch (e) {
       // ignore: avoid_print
       print('Error al iniciar escaneo: $e');
+      _manejarFalloEscaneo();
+    }
+  }
+
+/// Intento de respaldo vía TCP loopback cuando el escaneo BLE no encuentra
+  /// el wearable. Si el fallback también falla, ahí sí se marca 'error'.
+  Future<void> _manejarFalloEscaneo() async {
+    try {
+      final socket = await _tcpFallbackClient.conectar();
+      if (socket == null) {
+        _cambiarEstado('error');
+        return;
+      }
+
+      _tcpSocket = socket;
+      await _tcpDataSub?.cancel();
+      _tcpDataSub = _tcpFallbackClient.escucharDatos(socket).listen(
+        (dato) {
+          _ultimoDato = dato;
+          notifyListeners();
+        },
+        onError: (Object e) {
+          // ignore: avoid_print
+          print('Error en datos del respaldo TCP: $e');
+          _cambiarEstado('error');
+        },
+        onDone: () {
+          if (_estadoConexion == 'conectado_respaldo') {
+            _ultimoDato = null;
+            _cambiarEstado('desconectado');
+          }
+        },
+      );
+
+      _cambiarEstado('conectado_respaldo');
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error en el respaldo TCP: $e');
       _cambiarEstado('error');
     }
   }
@@ -80,7 +126,7 @@ class WearableProvider extends ChangeNotifier {
     try {
       await _bleService.conectar(device);
     } catch (e) {
-      // avoid_print
+      // ignore: avoid_print
       print('Error al conectar: $e');
       _cambiarEstado('error');
       return;
@@ -93,7 +139,7 @@ class WearableProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (Object e) {
-        // avoid_print
+        // ignore: avoid_print
         print('Error en datos del wearable: $e');
       },
     );
@@ -114,7 +160,7 @@ class WearableProvider extends ChangeNotifier {
         }
       },
       onError: (Object e) {
-        // avoid_print
+        // ignore: avoid_print
         print('Error en estado de conexión: $e');
         _manejarDesconexion();
       },
@@ -151,13 +197,20 @@ class WearableProvider extends ChangeNotifier {
     await _scanSub?.cancel();
     await _dataSub?.cancel();
     await _connectionSub?.cancel();
+    await _tcpDataSub?.cancel();
+
+    final tcpSocket = _tcpSocket;
+    if (tcpSocket != null) {
+      await _tcpFallbackClient.cerrar(tcpSocket);
+      _tcpSocket = null;
+    }
 
     final dispositivo = _dispositivo;
     if (dispositivo != null) {
       try {
         await _bleService.desconectar(dispositivo);
       } catch (e) {
-        // avoid_print
+        // ignore: avoid_print
         print('Error al desconectar: $e');
       }
     }
@@ -182,6 +235,12 @@ class WearableProvider extends ChangeNotifier {
     _scanSub?.cancel();
     _dataSub?.cancel();
     _connectionSub?.cancel();
+    _tcpDataSub?.cancel();
+    final tcpSocket = _tcpSocket;
+    if (tcpSocket != null) {
+      tcpSocket.close();
+      _tcpSocket = null;
+    }
     super.dispose();
   }
 }

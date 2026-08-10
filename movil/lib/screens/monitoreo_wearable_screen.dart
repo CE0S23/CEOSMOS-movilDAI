@@ -12,6 +12,8 @@ class MonitoreoWearableScreen extends StatelessWidget {
         return Colors.amber;
       case 'conectado':
         return Colors.green;
+      case 'conectado_respaldo':
+        return Colors.orange;
       case 'error':
         return Colors.red;
       case 'desconectado':
@@ -19,6 +21,15 @@ class MonitoreoWearableScreen extends StatelessWidget {
       case 'inactivo':
       default:
         return Colors.grey;
+    }
+  }
+
+  String _textoEstado(String estado) {
+    switch (estado) {
+      case 'conectado_respaldo':
+        return 'CONECTADO (RESPALDO)';
+      default:
+        return estado.toUpperCase();
     }
   }
 
@@ -32,7 +43,11 @@ class MonitoreoWearableScreen extends StatelessWidget {
     final colorEstado = _colorEstado(estado);
     final mostrarBuscar = estado == 'inactivo' || estado == 'error';
     final mostrarDesconectar =
-        estado == 'conectado' || estado == 'buscando';
+        estado == 'conectado' ||
+        estado == 'conectado_respaldo' ||
+        estado == 'buscando';
+    final mostrarDatos = estado == 'conectado' ||
+        estado == 'conectado_respaldo';
 
     return Scaffold(
       appBar: AppBar(
@@ -44,11 +59,12 @@ class MonitoreoWearableScreen extends StatelessWidget {
           _ChipEstado(
             estado: estado,
             color: colorEstado,
+            texto: _textoEstado(estado),
           ),
           if (alertaCritica) const _BannerAlertaCritica(),
           if (estado == 'buscando') const LinearProgressIndicator(),
           const SizedBox(height: 24),
-          if (ultimoDato != null && estado == 'conectado') ...[
+          if (ultimoDato != null && mostrarDatos) ...[
             Row(
               children: [
                 Expanded(
@@ -108,8 +124,13 @@ class MonitoreoWearableScreen extends StatelessWidget {
 class _ChipEstado extends StatelessWidget {
   final String estado;
   final Color color;
+  final String texto;
 
-  const _ChipEstado({required this.estado, required this.color});
+  const _ChipEstado({
+    required this.estado,
+    required this.color,
+    required this.texto,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +138,7 @@ class _ChipEstado extends StatelessWidget {
       child: Chip(
         backgroundColor: color.withValues(alpha: 0.2),
         avatar: Icon(Icons.circle, color: color, size: 14),
-        label: Text(estado.toUpperCase()),
+        label: Text(texto),
       ),
     );
   }

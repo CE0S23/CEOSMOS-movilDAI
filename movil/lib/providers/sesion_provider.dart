@@ -11,41 +11,70 @@ class SesionProvider extends ChangeNotifier {
 
   List<ContenidoModel> _contenidos = [];
   SesionModel? _sesionActual;
+  String? _uid;
+  bool _uidInicializado = false;
 
   late final StreamSubscription<List<ContenidoModel>> _contenidosSub;
-  late final StreamSubscription<SesionModel?> _sesionActivaSub;
+  StreamSubscription<SesionModel?>? _sesionActivaSub;
 
   List<ContenidoModel> get contenidos => _contenidos;
   SesionModel? get sesionActual => _sesionActual;
+  String? get uid => _uid;
 
   SesionProvider() {
     _contenidosSub = _firestoreService.streamContenidos().listen((contenidos) {
       _contenidos = contenidos;
       notifyListeners();
     });
+  }
+
+  /// Vincula el provider al usuario autenticado. Si el uid cambia,
+  /// re-suscribe el stream de la sesión activa de ese usuario.
+  void setUid(String? uid) {
+    if (_uidInicializado && _uid == uid) {
+      return;
+    }
+    _uidInicializado = true;
+    _uid = uid;
+
+    _sesionActivaSub?.cancel();
+    _sesionActivaSub = null;
+    _sesionActual = null;
+
+    if (uid == null) {
+      notifyListeners();
+      return;
+    }
 
     _sesionActivaSub =
-        _firestoreService.streamSesionActiva().listen((sesion) {
+        _firestoreService.streamSesionActiva(uid).listen((sesion) {
       _sesionActual = sesion;
       notifyListeners();
     });
   }
 
   Future<void> seleccionarModo(ContenidoModel contenido) async {
+    final uid = _uid;
+    if (uid == null) {
+      return;
+    }
+
     final sesion = SesionModel(
       modoActual: contenido.modo,
       contenidoId: contenido.id,
       estado: 'activa',
       inicioTimestamp: DateTime.now(),
     );
-    await _firestoreService.actualizarSesion(sesion);
+    await _firestoreService.actualizarSesion(sesion, uid);
   }
 
   Future<void> finalizarSesion() async {
+    final uid = _uid;
     final sesion = _sesionActual;
-    if (sesion == null) {
+    if (uid == null || sesion == null) {
       return;
     }
+
     final finalizada = SesionModel(
       modoActual: sesion.modoActual,
       contenidoId: sesion.contenidoId,
@@ -53,13 +82,13 @@ class SesionProvider extends ChangeNotifier {
       inicioTimestamp: sesion.inicioTimestamp,
       frecuenciaCardiaca: sesion.frecuenciaCardiaca,
     );
-    await _firestoreService.actualizarSesion(finalizada);
+    await _firestoreService.actualizarSesion(finalizada, uid);
   }
 
   @override
   void dispose() {
     _contenidosSub.cancel();
-    _sesionActivaSub.cancel();
+    _sesionActivaSub?.cancel();
     super.dispose();
   }
 }

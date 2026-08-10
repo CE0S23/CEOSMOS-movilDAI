@@ -61,13 +61,18 @@ class SeleccionModoScreen extends StatelessWidget {
                       return _ModoTarjeta(
                         contenido: contenido,
                         onColor: _parseColor(contenido.colorAcento),
+                        onColorSecundario: contenido.colorSecundario.isEmpty
+                            ? _parseColor(contenido.colorAcento)
+                            : _parseColor(contenido.colorSecundario),
+                        onIcono: _iconoPara(contenido.iconoNombre),
                         onTap: () {
                           context
                               .read<SesionProvider>()
                               .seleccionarModo(contenido);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Modo ${contenido.titulo} activado'),
+                              content:
+                                  Text('Modo ${contenido.titulo} activado'),
                               duration: const Duration(seconds: 1),
                             ),
                           );
@@ -85,11 +90,15 @@ class SeleccionModoScreen extends StatelessWidget {
 class _ModoTarjeta extends StatelessWidget {
   final ContenidoModel contenido;
   final Color onColor;
+  final Color onColorSecundario;
+  final IconData onIcono;
   final VoidCallback onTap;
 
   const _ModoTarjeta({
     required this.contenido,
     required this.onColor,
+    required this.onColorSecundario,
+    required this.onIcono,
     required this.onTap,
   });
 
@@ -106,14 +115,27 @@ class _ModoTarjeta extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Container(
-                color: onColor,
-                alignment: Alignment.center,
-                child: Text(
-                  contenido.tipoContenido,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [onColor, onColorSecundario],
                   ),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(onIcono, color: Colors.white, size: 40),
+                    const SizedBox(height: 8),
+                    Text(
+                      contenido.tipoContenido,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -134,6 +156,21 @@ class _ModoTarjeta extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+IconData _iconoPara(String nombre) {
+  switch (nombre) {
+    case 'self_improvement':
+      return Icons.self_improvement;
+    case 'headphones':
+      return Icons.headphones;
+    case 'format_quote_rounded':
+      return Icons.format_quote_rounded;
+    case 'music_note':
+      return Icons.music_note;
+    default:
+      return Icons.auto_awesome;
   }
 }
 

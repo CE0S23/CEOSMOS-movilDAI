@@ -1,12 +1,37 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ------------------------------------------
+    // NOTA TEMPORAL (entrega de demo): sin auth de Firestore aún.
+    // Las reglas reales se mantienen permisivas de forma deliberada;
+    // solo cambia la estructura documentada (un documento por usuario).
+    // ------------------------------------------
+
+    // Catálogo global de contenidos: lectura pública, escritura bloqueada.
     match /contenidos/{doc} {
       allow read: if true;
       allow write: if false;
     }
-    match /sesiones/{doc} {
+
+    // Sesión activa por usuario: sesiones/{uid} en vez de sesiones/activa.
+    match /sesiones/{uid} {
       allow read, write: if true;
+    }
+
+    // Vinculaciones móvil → TV por código de 6 dígitos.
+    match /vinculaciones/{codigo} {
+      allow read, write: if true;
+    }
+
+    // Historial y favoritos por usuario.
+    match /usuarios/{uid} {
+      allow read, write: if true;
+      match /historial/{id} {
+        allow read, write: if true;
+      }
+      match /favoritos/{id} {
+        allow read, write: if true;
+      }
     }
   }
 }

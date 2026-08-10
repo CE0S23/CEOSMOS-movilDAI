@@ -44,6 +44,21 @@ body {
   width: 100%;
   height: 100%;
 }
+.fondo-media--fallback {
+  background-size: 220% 220%;
+  animation: gradiente-animado 14s ease infinite;
+}
+@keyframes gradiente-animado {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
 .fondo-media__medio {
   object-fit: cover;
 }
@@ -166,4 +181,109 @@ body {
   justify-content: center;
   font-size: 24px;
   font-weight: bold;
+}
+
+/* ------------------------------------------------------------------
+   Pantalla de vinculación TV (email + código de 6 dígitos)
+   ------------------------------------------------------------------ */
+.vinculacion {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-fondo);
+}
+
+.vinculacion[hidden] {
+  display: none;
+}
+
+.vinculacion__form {
+  width: 900px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 64px;
+  background-color: var(--color-fondo-alt);
+  border: 3px solid var(--color-texto-suave);
+  border-radius: 24px;
+}
+
+.vinculacion__titulo {
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: var(--color-texto);
+  text-align: center;
+}
+
+.vinculacion__texto {
+  font-size: 2rem;
+  line-height: 1.5;
+  color: var(--color-texto-suave);
+  text-align: center;
+  max-width: 640px;
+}
+
+.vinculacion__campo {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vinculacion__etiqueta {
+  font-size: 2rem;
+  color: var(--color-texto);
+}
+
+.vinculacion__entrada {
+  font-size: 2.6rem;
+  padding: 24px 32px;
+  border: 3px solid var(--color-texto-suave);
+  border-radius: 12px;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  outline: none;
+  width: 100%;
+}
+
+.vinculacion__entrada--codigo {
+  font-size: 3.4rem;
+  letter-spacing: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.vinculacion__entrada:focus {
+  border-color: var(--dorado);
+  box-shadow: 0 0 40px 8px rgba(255, 213, 79, 0.35);
+}
+
+.vinculacion__error {
+  font-size: 2rem;
+  color: #ff6b6b;
+  text-align: center;
+}
+
+.vinculacion__boton {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #10152b;
+  background-color: var(--dorado);
+  border: none;
+  border-radius: 12px;
+  padding: 20px 64px;
+  cursor: pointer;
+}
+
+.vinculacion__boton:focus {
+  outline: 6px solid rgba(255, 213, 79, 0.4);
+}
+
+.vinculacion__boton:disabled {
+  opacity: 0.5;
 }

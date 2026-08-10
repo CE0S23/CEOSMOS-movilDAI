@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:ble_peripheral/ble_peripheral.dart' as ble_peripheral;
 
 import '../models/wearable_data_model.dart';
+import '../services/tcp_server_service.dart';
 import 'ble_constants.dart';
 
 /// Servidor GATT (peripheral) basado en `ble_peripheral`.
@@ -27,6 +28,8 @@ class GattServerService {
       StreamController<bool>.broadcast();
   final Map<String, bool> _deviceConectados = {};
 
+  final TcpServerService tcpServerService = TcpServerService();
+
   /// broadcast: true si hay al menos un dispositivo central (móvil) conectado.
   Stream<bool> get streamCentralConectado => _conectadoController.stream;
   bool get _hayConectado => _deviceConectados.values.contains(true);
@@ -34,6 +37,7 @@ class GattServerService {
   /// Inicializa el plugin (debe llamarse antes que cualquier otro método).
   Future<void> inicializar() async {
     await ble_peripheral.BlePeripheral.initialize();
+    await tcpServerService.iniciar();
   }
 
   /// Define el servicio CEOSMOS con sus 3 características (propiedad NOTIFY)
@@ -130,9 +134,13 @@ class GattServerService {
       characteristicId: BleConstants.estadoCharUuid,
       value: estadoBytes,
     );
+
+    // Respaldo TCP loopback: se publica la misma muestra por el socket local.
+    tcpServerService.enviarDato(dato);
   }
 
   void dispose() {
+    tcpServerService.detener();
     _conectadoController.close();
   }
 }
